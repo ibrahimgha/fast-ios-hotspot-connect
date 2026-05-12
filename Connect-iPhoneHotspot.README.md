@@ -4,14 +4,16 @@ This folder contains `Connect-iPhoneHotspot.ps1`, a Windows PowerShell script
 that installs hidden Wi-Fi profiles for your iPhone hotspots and repeatedly
 tries to connect to them.
 
-The first hotspot is hardcoded:
+These hotspots are hardcoded:
 
 - SSID: `Ibrahim`
+- Authentication: `WPA2PSK`
+- SSID: `Ibrahim 012`
 - Authentication: `WPA2PSK`
 
 ## First-time setup
 
-The script can run immediately with the hardcoded hotspot. To add or replace
+The script can run immediately with the hardcoded hotspots. To add or replace
 one extra hotspot, run this from PowerShell:
 
 ```powershell
@@ -19,9 +21,9 @@ cd C:\Users\ibrah\one-time-tasks
 powershell -ExecutionPolicy Bypass -File .\Connect-iPhoneHotspot.ps1 -Setup
 ```
 
-It will keep using the hardcoded `Ibrahim` hotspot as the first network, then
-ask for one additional SSID and password. The additional password is saved in
-`hotspots.secure.json` using Windows user-level encryption, so that extra
+It will keep using the hardcoded `Ibrahim` and `Ibrahim 012` hotspots first,
+then ask for one additional SSID and password. The additional password is saved
+in `hotspots.secure.json` using Windows user-level encryption, so that extra
 password is not stored as plain text.
 
 ## Normal use

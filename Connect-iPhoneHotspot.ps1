@@ -16,8 +16,9 @@ has to make the hotspot available at the radio level.
 .EXAMPLE
 .\Connect-iPhoneHotspot.ps1 -Setup
 
-Uses the hardcoded first hotspot, prompts for one more SSID and password, saves
-that extra password encrypted, installs the WLAN profiles, and starts connecting.
+Uses the hardcoded hotspots, prompts for one more optional SSID and password,
+saves that extra password encrypted, installs the WLAN profiles, and starts
+connecting.
 
 .EXAMPLE
 .\Connect-iPhoneHotspot.ps1 -TimeoutSeconds 0 -DisconnectFirst
@@ -48,6 +49,12 @@ $BuiltInHotspots = @(
         Password = "aaaaaaaa"
         Authentication = "WPA2PSK"
         Priority = 1
+    },
+    [pscustomobject]@{
+        Ssid = "Ibrahim 012"
+        Password = "aaaaaaaa"
+        Authentication = "WPA2PSK"
+        Priority = 2
     }
 )
 
@@ -345,7 +352,7 @@ if (Test-Path -LiteralPath $ConfigPath) {
     $configuredHotspots = @(Read-HotspotConfig -Path $ConfigPath)
 }
 else {
-    Write-Host "No extra hotspot config found. Using the hardcoded hotspot only."
+    Write-Host "No extra hotspot config found. Using the hardcoded hotspots only."
 }
 
 $builtInSsids = @{}

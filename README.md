@@ -3,9 +3,11 @@
 Windows PowerShell helper for connecting to known iPhone Personal Hotspots,
 including hidden SSIDs that do not appear in the normal Wi-Fi list.
 
-The first hotspot is hardcoded in `Connect-iPhoneHotspot.ps1`:
+These hotspots are hardcoded in `Connect-iPhoneHotspot.ps1`:
 
 - SSID: `Ibrahim`
+- Authentication: `WPA2PSK`
+- SSID: `Ibrahim 012`
 - Authentication: `WPA2PSK`
 
 ## Run
@@ -14,15 +16,15 @@ The first hotspot is hardcoded in `Connect-iPhoneHotspot.ps1`:
 powershell -ExecutionPolicy Bypass -File C:\Users\ibrah\one-time-tasks\Connect-iPhoneHotspot.ps1 -TimeoutSeconds 0 -DisconnectFirst
 ```
 
-## Add another hotspot
+## Add another optional hotspot
 
 ```powershell
 cd C:\Users\ibrah\one-time-tasks
 powershell -ExecutionPolicy Bypass -File .\Connect-iPhoneHotspot.ps1 -Setup
 ```
 
-This keeps the hardcoded hotspot as priority 1 and prompts for one additional
-SSID and password.
+This keeps the hardcoded hotspots as priorities 1 and 2, then prompts for one
+additional SSID and password.
 
 ## iOS limitation
 
