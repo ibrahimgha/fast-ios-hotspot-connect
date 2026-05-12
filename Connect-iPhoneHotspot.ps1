@@ -28,7 +28,7 @@ Keeps trying forever and disconnects from the current Wi-Fi before each attempt.
 
 [CmdletBinding()]
 param(
-    [string]$ConfigPath = (Join-Path $PSScriptRoot "hotspots.secure.json"),
+    [string]$ConfigPath,
     [switch]$Setup,
     [int]$HotspotCount = 1,
     [string]$InterfaceName,
@@ -42,6 +42,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+if ([string]::IsNullOrWhiteSpace($ConfigPath)) {
+    $ConfigPath = Join-Path $PSScriptRoot "hotspots.secure.json"
+}
 
 $BuiltInHotspots = @(
     [pscustomobject]@{

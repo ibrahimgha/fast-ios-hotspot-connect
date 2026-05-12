@@ -47,6 +47,17 @@ network:
 powershell -ExecutionPolicy Bypass -File C:\Users\ibrah\one-time-tasks\Connect-iPhoneHotspot.ps1 -TimeoutSeconds 0 -DisconnectFirst
 ```
 
+## Ctrl+0 hotkey
+
+Install and start the background listener:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File C:\Users\ibrah\one-time-tasks\Install-HotspotHotkey.ps1
+```
+
+Press `Ctrl+0` to run the connector. Success is silent. Failure shows a Windows
+system message box with the reason.
+
 ## What this can and cannot do
 
 This script can tell Windows to connect to a known hidden SSID by creating WLAN
