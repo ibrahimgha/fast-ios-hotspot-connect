@@ -1,0 +1,9 @@
+hotspots.secure.json
+*.tmp
+*.log
+
+# Unrelated local one-time-task outputs.
+instant-notes/
+shortcut-board/
+battery-report.html
+startup-report.md
