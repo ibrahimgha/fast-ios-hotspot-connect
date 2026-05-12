@@ -50,12 +50,14 @@ if ([string]::IsNullOrWhiteSpace($ConfigPath)) {
 $BuiltInHotspots = @(
     [pscustomobject]@{
         Ssid = "Ibrahim"
+        ProfileName = "Fast iOS Hotspot Connect - Ibrahim"
         Password = "aaaaaaaa"
         Authentication = "WPA2PSK"
         Priority = 1
     },
     [pscustomobject]@{
         Ssid = "Ibrahim 012"
+        ProfileName = "Fast iOS Hotspot Connect - Ibrahim 012"
         Password = "aaaaaaaa"
         Authentication = "WPA2PSK"
         Priority = 2
@@ -156,6 +158,7 @@ function Read-HotspotConfig {
 
         [pscustomobject]@{
             Ssid = [string]$entry.Ssid
+            ProfileName = if ([string]::IsNullOrWhiteSpace($entry.ProfileName)) { "Fast iOS Hotspot Connect - $($entry.Ssid)" } else { [string]$entry.ProfileName }
             Password = ConvertTo-PlainText -SecureString $securePassword
             Authentication = $authentication
             Priority = $priority
@@ -226,6 +229,7 @@ function Get-WlanStatus {
 function New-WlanProfileXml {
     param(
         [Parameter(Mandatory)][string]$Ssid,
+        [Parameter(Mandatory)][string]$ProfileName,
         [Parameter(Mandatory)][string]$Password,
         [Parameter(Mandatory)][string]$Authentication
     )
@@ -235,13 +239,14 @@ function New-WlanProfileXml {
     }
 
     $ssidXml = ConvertTo-XmlText -Text $Ssid
+    $profileNameXml = ConvertTo-XmlText -Text $ProfileName
     $passwordXml = ConvertTo-XmlText -Text $Password
     $authXml = ConvertTo-XmlText -Text $Authentication
 
 @"
 <?xml version="1.0"?>
 <WLANProfile xmlns="http://www.microsoft.com/networking/WLAN/profile/v1">
-    <name>$ssidXml</name>
+    <name>$profileNameXml</name>
     <SSIDConfig>
         <SSID>
             <name>$ssidXml</name>
@@ -268,26 +273,38 @@ function New-WlanProfileXml {
 "@
 }
 
+function Get-HotspotProfileName {
+    param([Parameter(Mandatory)]$Hotspot)
+
+    if (-not [string]::IsNullOrWhiteSpace($Hotspot.ProfileName)) {
+        return [string]$Hotspot.ProfileName
+    }
+
+    "Fast iOS Hotspot Connect - $($Hotspot.Ssid)"
+}
+
 function Install-WlanProfile {
     param(
         [Parameter(Mandatory)]$Hotspot,
         [Parameter(Mandatory)][string]$Name
     )
 
-    $xml = New-WlanProfileXml -Ssid $Hotspot.Ssid -Password $Hotspot.Password -Authentication $Hotspot.Authentication
+    $profileName = Get-HotspotProfileName -Hotspot $Hotspot
+    $xml = New-WlanProfileXml -Ssid $Hotspot.Ssid -ProfileName $profileName -Password $Hotspot.Password -Authentication $Hotspot.Authentication
     $tempProfile = Join-Path ([IO.Path]::GetTempPath()) ("wlan-profile-{0}.xml" -f ([guid]::NewGuid()))
 
     try {
         $xml | Set-Content -LiteralPath $tempProfile -Encoding UTF8
+        & netsh wlan delete profile "name=$profileName" "interface=$Name" | Out-Null
         $addOutput = & netsh wlan add profile "filename=$tempProfile" "interface=$Name" user=current 2>&1
 
         if ($LASTEXITCODE -ne 0) {
-            throw "Could not add WLAN profile for '$($Hotspot.Ssid)'. netsh said:`n$($addOutput -join [Environment]::NewLine)"
+            throw "Could not add WLAN profile '$profileName' for '$($Hotspot.Ssid)'. netsh said:`n$($addOutput -join [Environment]::NewLine)"
         }
 
-        & netsh wlan set profileparameter "name=$($Hotspot.Ssid)" "connectionmode=auto" "nonBroadcast=yes" | Out-Null
-        & netsh wlan set profileorder "name=$($Hotspot.Ssid)" "interface=$Name" "priority=$($Hotspot.Priority)" | Out-Null
-        Write-Host "Installed hidden-network Wi-Fi profile for '$($Hotspot.Ssid)'"
+        & netsh wlan set profileparameter "name=$profileName" "connectionmode=auto" "nonBroadcast=yes" | Out-Null
+        & netsh wlan set profileorder "name=$profileName" "interface=$Name" "priority=$($Hotspot.Priority)" | Out-Null
+        Write-Host "Installed hidden-network Wi-Fi profile '$profileName' for '$($Hotspot.Ssid)'"
     }
     finally {
         if (Test-Path -LiteralPath $tempProfile) {
@@ -313,6 +330,8 @@ function Connect-Hotspot {
 
     Write-Host "Trying '$($Hotspot.Ssid)'..."
 
+    $profileName = Get-HotspotProfileName -Hotspot $Hotspot
+
     & netsh wlan show networks mode=bssid "interface=$Name" | Out-Null
 
     if ($DisconnectFirst) {
@@ -320,9 +339,9 @@ function Connect-Hotspot {
         Start-Sleep -Seconds 2
     }
 
-    $connectOutput = & netsh wlan connect "name=$($Hotspot.Ssid)" "ssid=$($Hotspot.Ssid)" "interface=$Name" 2>&1
+    $connectOutput = & netsh wlan connect "name=$profileName" "ssid=$($Hotspot.Ssid)" "interface=$Name" 2>&1
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "Windows did not start a connection attempt for '$($Hotspot.Ssid)': $($connectOutput -join ' ')"
+        Write-Host "Windows did not start a connection attempt for '$($Hotspot.Ssid)' using profile '$profileName': $($connectOutput -join ' ')"
         return $false
     }
 
